@@ -1,14 +1,11 @@
-import { useState } from 'react'
 import './App.css'
-import AdminPanel from './components/AdminPanel/AdminPanel'
-
+import AdminInput from './components/AdminInput/AdminInput'
 function App() {
 
   return (
-    <div className='App'>
-      <AdminPanel />
-     
-    </div>
+    <>
+    <AdminInput />
+    </>
   )
 }
 
