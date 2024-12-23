@@ -8,7 +8,7 @@ const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const { default: axios } = require('axios');
 const mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://zubalana0:zbhQXHED368PbcVK@cluster0.a5jnl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+mongoose.connect('mongodb+srv://root:PtEzWnJ9mmnog0pL@cluster0.rsoua.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 .then(
     console.log('MongoDB connected')
 )
