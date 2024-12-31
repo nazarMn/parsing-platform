@@ -1,59 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './AdminInput.css';
 import axios from 'axios';
 
 export default function AdminInput() {
     const [searchName, setSearchName] = useState('');
-    const [items, setItems] = useState([]);
-
-    const fetchItems = async () => {
-        try {
-            const response = await axios.get('http://localhost:3000/getItems');
-            setItems(response.data);
-        } catch (error) {
-            console.error('Error fetching items:', error);
-        }
-    };
 
     const handleSend = async () => {
         try {
-            await axios.post('http://localhost:3000/goodsTargetName', { URL: searchName });
-            fetchItems(); // Update table after saving
+            const response = await axios.post('http://localhost:3000/goodsTargetName', { URL: searchName });
+            alert(`Data fetched and logged successfully: ${response.data.message}`);
         } catch (error) {
-            console.error('Error sending URL:', error);
+            console.error('Error:', error);
+            alert('Error fetching or logging data');
         }
     };
 
-    useEffect(() => {
-        fetchItems(); // Load data on component mount
-    }, []);
-
     return (
-        <div className='adminForm'>
+        <div className="adminForm">
             <input
                 type="text"
-                placeholder='Введіть URL'
+                placeholder="URL"
                 onChange={(e) => setSearchName(e.target.value)}
             />
-            <button onClick={handleSend}>Отримати та зберегти</button>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Назва товару</th>
-                        <th>Ціна</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {items.map((item, index) => (
-                        <tr key={index}>
-                            <td>{item.title}</td>
-                            <td>{item.price}</td>
-                            <td>{item.status ? 'Є в наявності' : 'Немає в наявності'}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <button onClick={handleSend}>Send</button>
         </div>
     );
 }

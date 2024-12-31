@@ -1,0 +1,50 @@
+.goodsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.goodItem {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;    
+}
+
+.goodItem p {
+    margin: 5px 0;
+    font-weight: bold;
+    color: #4CAF50;
+    font-size: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.goodItem button {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+
+}
+
+.goodItem button:hover {
+    background-color: #45a049;
+}
+
+.goodItem a{
+    text-decoration: none;
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
