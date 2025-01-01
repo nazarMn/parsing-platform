@@ -7,16 +7,9 @@ const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const TOKEN = '6554951276:AAHjkeeFVNxBQ42LCyizyH-3S-UbkJLqHqY';
-
-const bot = new TelegramBot(TOKEN, {polling: true});
-
-bot.sendMessage(1779499306, 'Hello, world!');
-
-
-
-
+const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 const PORT = process.env.PORT || 3000;
 
 mongoose
@@ -30,7 +23,14 @@ const itemSchema = new mongoose.Schema({
     title: String,
     price: String,
     status: Boolean,
+    createdAt: { type: Date, default: Date.now },
+    follow: Boolean,
+    url: String
 });
+
+
+
+
 
 const Item = mongoose.model('Item', itemSchema);
 
@@ -65,6 +65,8 @@ app.post('/goodsTargetName', async (req, res) => {
         $('.status-label').each((_, element) => {
             statuses.push($(element).text().includes('Є в наявності') || $(element).text().includes('Закінчується'));
         });
+
+
         let goodsInfo = {};
         goodsInfo.title = titles[0];
         goodsInfo.price = prices[0];
@@ -72,16 +74,16 @@ app.post('/goodsTargetName', async (req, res) => {
         goodsInfo.follow = false;
         goodsInfo.url = URL;
 
+        console.log(goodsInfo)
+
         await Item.create(goodsInfo);
 
         res.json({ message: 'Data successfully logged', goodsInfo });
-        // res.json({ message: 'Data successfully logged', items });
     } catch (error) {
         console.error('Error parsing URL:', error);
         res.status(500).json({ message: 'Error fetching data from URL' });
     }
 });
-
 
 app.get('/items', async (req, res) => {
     try {
@@ -93,52 +95,47 @@ app.get('/items', async (req, res) => {
     }
 });
 
-
-
-
 app.post('/follow', async (req, res) => {
+    const { id } = req.body;
     try {
-     const { id } = req.body;
         const item = await Item.findById(id);
         item.follow = !item.follow;
         await item.save();
-        bot.sendMessage(1779499306, `Follow status for ${item.title} has been updated to ${item.follow ? 'Unfollow' : 'Follow'}`);
-       res.json({ message: `Follow status for` });
-    
-    }
-    catch (error) {
-        console.error('Error fetching items:', error);
-        res.status(500).json({ message: 'Error fetching items' });
+        bot.sendMessage(process.env.CHAT_ID, 'Follow status for ' + item.title + ' has been changed to ' + item.follow);
+        res.json(item);
+    } catch (error) {
+        console.error('Error following item:', error);
+        res.status(500).json({ message: 'Error following item' });
     }
 });
-
 
 app.post('/getUpdate', async (req, res) => {
     try {
-     const { url } = req.body;
-     const browser = await puppeteer.launch();
-     const page = await browser.newPage();
-     await page.goto(url);
-     const html = await page.content();
-     const $ = cheerio.load(html);
-     const title = $('h1').text();
-     const price = $('span').text();
-     const status = $('span').text().includes('Є в наявності') || $('span').text().includes('Закінчується');
-     const item = await Item.findOne({ url });
-     if (item.title === title && item.price === price && item.status === status) {
-        await browser.close();
-        return res.jsom({ message: 'The data has not changed' });
-        bot.sendMessage(1779499306, `Follow status for ${item.title} has been updated to ${item.follow ? 'Unfollow' : 'Follow'}`);
-     }else{
-        return res.json({ message: 'The data has changed' });
-        bot.sendMessage(1779499306, `Follow status for ${item.title} has been updated to ${item.follow ? 'Unfollow' : 'Follow'}`);
-     }
-    } catch (error) {
-        console.error('Error fetching items:', error);
-        res.status(500).json({ message: 'Error fetching items' });
-    }
-});
+        const {url} = req.body;
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.goto(url);
+        const html = await page.content();
+        const $ = cheerio.load(html);
 
+        const title = $('.title__font').text();
+        const price = $('.product-price__big').text();
+        const status = $('.status-label').text().includes('Є в наявності') || $('.status-label').text().includes('Закінчується');
+
+        const item = await Item.findOne({ url: url });
+        if(item.title === title && item.price === price && item.status === status) {
+            await browser.close();
+            bot.sendMessage(process.env.CHAT_ID, 'The data has not changed');
+            return res.json({ message: 'The data has not changed' });
+        }else{
+            bot.sendMessage(process.env.CHAT_ID, 'The data has changed');
+            return res.json({ message: 'The data has changed' });
+        }
+    } catch (error) {
+        console.error('Error fetching item:', error);
+        res.status(500).json({ message: 'Error fetching item' });
+    }
+})
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

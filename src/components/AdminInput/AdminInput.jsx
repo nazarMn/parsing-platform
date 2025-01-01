@@ -16,13 +16,15 @@ export default function AdminInput() {
     };
 
     return (
-        <div className="adminForm">
+        <div className="admin-form">
             <input
                 type="text"
-                placeholder="URL"
+                className="admin-input"
+                placeholder="Enter URL..."
+                value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
             />
-            <button onClick={handleSend}>Send</button>
+            <button onClick={handleSend} className="admin-button">Send</button>
         </div>
     );
 }

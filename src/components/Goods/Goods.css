@@ -1,50 +1,109 @@
-.goodsContainer {
+.goods-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-}
-
-.goodItem {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 10px;    
-}
-
-.goodItem p {
-    margin: 5px 0;
-    font-weight: bold;
-    color: #4CAF50;
-    font-size: 20px;
-    display: flex;
-    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
     justify-content: center;
-    align-items: center;
-}
-
-.goodItem button {
+    background-color: #f5f5f5;
+  }
+  
+  .goods-item {
+    width: 280px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .goods-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+  
+  .item-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .item-price {
+    font-size: 1.1rem;
+    color: #4caf50;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .item-status {
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    text-align: center;
     padding: 5px 10px;
-    background-color: #4CAF50;
+    border-radius: 5px;
+  }
+  
+  .item-status.available {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .item-status.not-available {
+    background-color: #ffebee;
+    color: #c62828;
+  }
+  
+  .view-btn {
+    display: inline-block;
+    text-align: center;
+    margin: 10px auto;
+    text-decoration: none;
+    font-weight: bold;
     color: white;
-    border: none;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 16px;
+    background-color: #2196f3;
+    padding: 10px 15px;
     border-radius: 5px;
     transition: background-color 0.3s ease;
-
-}
-
-.goodItem button:hover {
-    background-color: #45a049;
-}
-
-.goodItem a{
-    text-decoration: none;
-    color: #4CAF50;
-    font-weight: bold;
-    font-size: 20px;
+  }
+  
+  .view-btn:hover {
+    background-color: #1976d2;
+  }
+  
+  .item-buttons {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+  
+  .follow-btn, .update-btn {
+    flex: 1;
+    margin: 0 5px;
+    padding: 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .follow-btn {
+    background-color: #4caf50;
+  }
+  
+  .follow-btn:hover {
+    background-color: #388e3c;
+  }
+  
+  .update-btn {
+    background-color: #ff9800;
+  }
+  
+  .update-btn:hover {
+    background-color: #f57c00;
+  }
+  
