@@ -106,4 +106,16 @@
   .update-btn:hover {
     background-color: #f57c00;
   }
+  .delete-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-left: 5px;
+    border-radius: 6px;
+  }
   
+  .delete-btn:hover {
+    background-color: darkred;
+  }

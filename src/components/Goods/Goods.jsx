@@ -35,6 +35,21 @@ export default function Goods() {
     }
   };
 
+
+
+
+  const deleteItem = async (id) => {
+    try {
+      const response = await axios.delete(`http://localhost:3000/deleteItem/${id}`);
+      console.log(response.data);
+      // Refresh the goods list after deletion
+      getGoods();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+  };
+  
+
   return (
     <div className="goods-container">
       {goods.map((item, index) => (
@@ -46,11 +61,13 @@ export default function Goods() {
           </p>
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="view-btn">View</a>
           <div className="item-buttons">
-            <button onClick={() => setFollow(item._id)} className="follow-btn">
-              {item.follow ? 'Unfollow' : 'Follow'}
-            </button>
-            <button onClick={() => getUpdate(item._id)} className="update-btn">Check update</button>
-          </div>
+  <button onClick={() => setFollow(item._id)} className="follow-btn">
+    {item.follow ? 'Unfollow' : 'Follow'}
+  </button>
+  <button onClick={() => getUpdate(item._id)} className="update-btn">Check update</button>
+  <button onClick={() => deleteItem(item._id)} className="delete-btn">Delete</button>
+</div>
+
         </div>
       ))}
     </div>

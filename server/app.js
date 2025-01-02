@@ -137,6 +137,32 @@ app.post('/getUpdate', async (req, res) => {
     }
 })
 
+
+
+
+app.delete('/deleteItem/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const deletedItem = await Item.findByIdAndDelete(id);
+        if (!deletedItem) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        // Notify Telegram about the deletion
+        const message = `🗑️ Item deleted: \n\nTitle: ${deletedItem.title}\nPrice: ${deletedItem.price}\nURL: ${deletedItem.url}`;
+        bot.sendMessage(process.env.CHAT_ID, message);
+
+        res.json({ message: 'Item deleted successfully', deletedItem });
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        res.status(500).json({ message: 'Error deleting item' });
+    }
+});
+
+
+
+
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
