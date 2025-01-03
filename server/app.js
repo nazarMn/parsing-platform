@@ -28,6 +28,47 @@ const itemSchema = new mongoose.Schema({
     url: String
 });
 
+bot.on('message', async (msg) => {
+    const chatId = msg.chat.id;
+    const text = msg.text;
+
+    // Simple URL validation
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    if (!urlRegex.test(text)) {
+        bot.sendMessage(chatId, '⚠️ Please send a valid product URL.');
+        return;
+    }
+
+    try {
+        const URL = text;
+
+        // Fetch product details
+        const response = await axios.get(URL);
+        const html = response.data;
+        const $ = cheerio.load(html);
+
+        const title = $('.title__font').first().text();
+        const price = $('.product-price__big').first().text();
+        const status = $('.status-label').text().includes('Є в наявності') || $('.status-label').text().includes('Закінчується');
+
+        const goodsInfo = {
+            title: title || 'No Title Found',
+            price: price || 'No Price Found',
+            status: status,
+            follow: false,
+            url: URL
+        };
+
+        // Save to MongoDB
+        const savedItem = await Item.create(goodsInfo);
+
+        // Respond to the user
+        bot.sendMessage(chatId, `✅ Product saved successfully:\n\n📦 Title: ${goodsInfo.title}\n💵 Price: ${goodsInfo.price}\n🔗 URL: ${goodsInfo.url}`);
+    } catch (error) {
+        console.error('Error processing URL:', error);
+        bot.sendMessage(chatId, '❌ An error occurred while processing the product URL.');
+    }
+});
 
 
 
