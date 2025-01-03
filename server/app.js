@@ -140,19 +140,35 @@ app.post('/follow', async (req, res) => {
     const { id } = req.body;
     try {
         const item = await Item.findById(id);
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
         item.follow = !item.follow;
         await item.save();
-        bot.sendMessage(process.env.CHAT_ID, 'Follow status for ' + item.title + ' has been changed to ' + item.follow);
+
+        // Format the Telegram message
+        const followStatus = item.follow ? '✅ Subscribed' : '❌ Unsubscribed';
+        const message = `${followStatus} to updates:\n\n📦 Title: ${item.title}\n💵 Price: ${item.price}\n🔗 URL: ${item.url}`;
+
+        bot.sendMessage(process.env.CHAT_ID, message);
         res.json(item);
     } catch (error) {
-        console.error('Error following item:', error);
-        res.status(500).json({ message: 'Error following item' });
+        console.error('Error updating follow status:', error);
+        res.status(500).json({ message: 'Error updating follow status' });
     }
 });
 
 app.post('/getUpdate', async (req, res) => {
+    const { id } = req.body;
     try {
-        const {url} = req.body;
+        const item = await Item.findById(id);
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        const { url } = item; // Get the URL from the database
+
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
         await page.goto(url);
@@ -163,20 +179,42 @@ app.post('/getUpdate', async (req, res) => {
         const price = $('.product-price__big').text();
         const status = $('.status-label').text().includes('Є в наявності') || $('.status-label').text().includes('Закінчується');
 
-        const item = await Item.findOne({ url: url });
-        if(item.title === title && item.price === price && item.status === status) {
-            await browser.close();
-            bot.sendMessage(process.env.CHAT_ID, 'The data has not changed');
-            return res.json({ message: 'The data has not changed' });
-        }else{
-            bot.sendMessage(process.env.CHAT_ID, 'The data has changed');
-            return res.json({ message: 'The data has changed' });
+        // Check if the data has changed
+        let message = '';
+        let priceChanged = false;
+        
+        // Check for price change
+        if (item.price !== price) {
+            priceChanged = true;
+            item.price = price; // Update the price in the database
+            message += `💸 Price has changed!\nOld Price: ${item.price}\nNew Price: ${price}\n`;
         }
+
+        if (item.title !== title) {
+            item.title = title; // Update the title if changed
+            message += `📦 Title has changed!\nOld Title: ${item.title}\nNew Title: ${title}\n`;
+        }
+
+        if (item.status !== status) {
+            item.status = status; // Update the status if changed
+            message += `🔔 Status has changed!\nNew Status: ${status ? 'Available' : 'Not Available'}\n`;
+        }
+
+        // Save the updated item
+        await item.save();
+
+        if (priceChanged) {
+            // Send a message to Telegram
+            bot.sendMessage(process.env.CHAT_ID, `Product updated:\n\n${message}🔗 URL: ${item.url}`);
+        }
+
+        await browser.close();
+        return res.json({ message: priceChanged ? 'The data has changed' : 'No changes detected', updatedItem: item });
     } catch (error) {
         console.error('Error fetching item:', error);
         res.status(500).json({ message: 'Error fetching item' });
     }
-})
+});
 
 
 

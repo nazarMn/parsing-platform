@@ -30,12 +30,13 @@ export default function Goods() {
     try {
       const response = await axios.post('http://localhost:3000/getUpdate', { id });
       console.log(response.data);
-    } catch {
-      console.error('Error');
+
+      // Display the update message on the frontend (optional)
+      alert(response.data.message);
+    } catch (error) {
+      console.error('Error checking update:', error);
     }
-  };
-
-
+};
 
 
   const deleteItem = async (id) => {
@@ -48,7 +49,6 @@ export default function Goods() {
       console.error('Error deleting item:', error);
     }
   };
-  
 
   return (
     <div className="goods-container">
@@ -61,13 +61,12 @@ export default function Goods() {
           </p>
           <a href={item.url} target="_blank" rel="noopener noreferrer" className="view-btn">View</a>
           <div className="item-buttons">
-  <button onClick={() => setFollow(item._id)} className="follow-btn">
-    {item.follow ? 'Unfollow' : 'Follow'}
-  </button>
-  <button onClick={() => getUpdate(item._id)} className="update-btn">Check update</button>
-  <button onClick={() => deleteItem(item._id)} className="delete-btn">Delete</button>
-</div>
-
+            <button onClick={() => setFollow(item._id)} className="follow-btn">
+              {item.follow ? 'Unfollow' : 'Follow'}
+            </button>
+            <button onClick={() => getUpdate(item._id)} className="update-btn">Check update</button>
+            <button onClick={() => deleteItem(item._id)} className="delete-btn">Delete</button>
+          </div>
         </div>
       ))}
     </div>
