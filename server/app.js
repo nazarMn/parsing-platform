@@ -253,7 +253,7 @@ app.delete('/deleteItem/:id', async (req, res) => {
 
 const monitorPrices = async () => {
     try {
-        // Отримати тільки ті товари, на які підписані (follow: true)
+      
         const items = await Item.find({ follow: true });
 
         for (const item of items) {
@@ -269,7 +269,7 @@ const monitorPrices = async () => {
             const newTitle = $('.title__font').text(); 
             const newStatus = $('.status-label').text().includes('Є в наявності') || $('.status-label').text().includes('Закінчується');
 
-            // Перевірка на зміни ціни
+            
             if (newPrice !== price) {
                 item.price = newPrice;
                 await item.save();
@@ -278,7 +278,7 @@ const monitorPrices = async () => {
                 bot.sendMessage(process.env.CHAT_ID, message);
             }
 
-            // Перевірка на зміну назви чи статусу
+           
             if (newTitle !== title || newStatus !== item.status) {
                 item.title = newTitle;
                 item.status = newStatus;
@@ -299,7 +299,7 @@ const monitorPrices = async () => {
     }
 };
 
-// Запуск моніторингу кожну хвилину
+
 cronJob.schedule('*/1 * * * *', () => {
     console.log('Перевірка цін...');
     monitorPrices();
