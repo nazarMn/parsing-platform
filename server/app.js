@@ -9,6 +9,7 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
+const cronJob = require('node-cron');  // Змінили ім'я на cronJob
 const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 const PORT = process.env.PORT || 3000;
 
@@ -32,7 +33,7 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    // Simple URL validation
+    
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     if (!urlRegex.test(text)) {
         bot.sendMessage(chatId, '⚠️ Please send a valid product URL.');
@@ -42,7 +43,7 @@ bot.on('message', async (msg) => {
     try {
         const URL = text;
 
-        // Fetch product details
+        
         const response = await axios.get(URL);
         const html = response.data;
         const $ = cheerio.load(html);
@@ -59,10 +60,10 @@ bot.on('message', async (msg) => {
             url: URL
         };
 
-        // Save to MongoDB
+      
         const savedItem = await Item.create(goodsInfo);
 
-        // Respond to the user
+       
         bot.sendMessage(chatId, `✅ Product saved successfully:\n\n📦 Title: ${goodsInfo.title}\n💵 Price: ${goodsInfo.price}\n🔗 URL: ${goodsInfo.url}`);
     } catch (error) {
         console.error('Error processing URL:', error);
@@ -167,7 +168,7 @@ app.post('/getUpdate', async (req, res) => {
             return res.status(404).json({ message: 'Item not found' });
         }
 
-        const { url } = item; // Get the URL from the database
+        const { url } = item;
 
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
@@ -179,32 +180,32 @@ app.post('/getUpdate', async (req, res) => {
         const price = $('.product-price__big').text();
         const status = $('.status-label').text().includes('Є в наявності') || $('.status-label').text().includes('Закінчується');
 
-        // Check if the data has changed
+        
         let message = '';
         let priceChanged = false;
         
-        // Check for price change
+        
         if (item.price !== price) {
             priceChanged = true;
-            item.price = price; // Update the price in the database
+            item.price = price; 
             message += `💸 Price has changed!\nOld Price: ${item.price}\nNew Price: ${price}\n`;
         }
 
         if (item.title !== title) {
-            item.title = title; // Update the title if changed
+            item.title = title; 
             message += `📦 Title has changed!\nOld Title: ${item.title}\nNew Title: ${title}\n`;
         }
 
         if (item.status !== status) {
-            item.status = status; // Update the status if changed
+            item.status = status; 
             message += `🔔 Status has changed!\nNew Status: ${status ? 'Available' : 'Not Available'}\n`;
         }
 
-        // Save the updated item
+        
         await item.save();
 
         if (priceChanged) {
-            // Send a message to Telegram
+           
             bot.sendMessage(process.env.CHAT_ID, `Product updated:\n\n${message}🔗 URL: ${item.url}`);
         }
 
@@ -227,7 +228,7 @@ app.delete('/deleteItem/:id', async (req, res) => {
             return res.status(404).json({ message: 'Item not found' });
         }
 
-        // Notify Telegram about the deletion
+       
         const message = `🗑️ Item deleted: \n\nTitle: ${deletedItem.title}\nPrice: ${deletedItem.price}\nURL: ${deletedItem.url}`;
         bot.sendMessage(process.env.CHAT_ID, message);
 
@@ -236,6 +237,78 @@ app.delete('/deleteItem/:id', async (req, res) => {
         console.error('Error deleting item:', error);
         res.status(500).json({ message: 'Error deleting item' });
     }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+const monitorPrices = async () => {
+    try {
+        // Отримати тільки ті товари, на які підписані (follow: true)
+        const items = await Item.find({ follow: true });
+
+        for (const item of items) {
+            const { url, price, title } = item;
+
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+            await page.goto(url);
+            const html = await page.content();
+            const $ = cheerio.load(html);
+
+            const newPrice = $('.product-price__big').text(); 
+            const newTitle = $('.title__font').text(); 
+            const newStatus = $('.status-label').text().includes('Є в наявності') || $('.status-label').text().includes('Закінчується');
+
+            // Перевірка на зміни ціни
+            if (newPrice !== price) {
+                item.price = newPrice;
+                await item.save();
+
+                const message = `💸 Ціна змінилася!\n\n📦 Товар: ${newTitle}\n💵 Стара ціна: ${price}\n💵 Нова ціна: ${newPrice}\n🔗 URL: ${url}`;
+                bot.sendMessage(process.env.CHAT_ID, message);
+            }
+
+            // Перевірка на зміну назви чи статусу
+            if (newTitle !== title || newStatus !== item.status) {
+                item.title = newTitle;
+                item.status = newStatus;
+                await item.save();
+
+                let statusMessage = `🔔 Статус товару змінився!\nНовий статус: ${newStatus ? 'Доступний' : 'Не доступний'}`;
+                if (newTitle !== title) {
+                    statusMessage += `\n📦 Змінилась назва товару: ${title} → ${newTitle}`;
+                }
+
+                bot.sendMessage(process.env.CHAT_ID, `${statusMessage}\n🔗 URL: ${url}`);
+            }
+
+            await browser.close();
+        }
+    } catch (error) {
+        console.error('Помилка моніторингу цін:', error);
+    }
+};
+
+// Запуск моніторингу кожну хвилину
+cronJob.schedule('*/1 * * * *', () => {
+    console.log('Перевірка цін...');
+    monitorPrices();
+});
+
+
+cronJob.schedule('*/1 * * * *', () => {
+    console.log('Перевірка цін...');
+    monitorPrices();
 });
 
 
